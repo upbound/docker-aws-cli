@@ -1,0 +1,31 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: docker:stable-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Image
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker build -t $DOCKER_REPO/aws-cli .
+      - run:
+          name: Run Integration Test
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              docker run \
+              --env AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+              --env AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+              $DOCKER_REPO/aws-cli \
+              aws s3 cp s3://$TEST_BUCKET/test.txt test.txt
+            fi
+      - run:
+          name: Publish Image
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              docker tag $DOCKER_REPO/aws-cli:latest $DOCKER_REPO/aws-cli:$CIRCLE_SHA1
+              docker push $DOCKER_REPO/aws-cli:$CIRCLE_SHA1
+              docker push $DOCKER_REPO/aws-cli:latest
+            fi
