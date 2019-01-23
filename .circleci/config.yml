@@ -25,7 +25,11 @@ jobs:
           name: Publish Image
           command: |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              FINALTAG=`echo v0.0.0-$(git rev-list HEAD --count)-$(git describe --dirty --always) | sed 's/-/./2' | sed 's/-/./2'`
+              if [ $(git tag) == "" ]; then
+                FINALTAG=`echo v0.0.0-$(git rev-list HEAD --count)-$(git describe --dirty --always) | sed 's/-/./2' | sed 's/-/./2'`
+              else
+                FINALTAG=`echo $(git describe --dirty --always --tags) | sed 's/-/./2' | sed 's/-/./2'`
+              fi
               docker tag $DOCKER_REPO/aws-cli:latest $DOCKER_REPO/aws-cli:$FINALTAG
               docker push $DOCKER_REPO/aws-cli:$FINALTAG
               docker push $DOCKER_REPO/aws-cli:latest
