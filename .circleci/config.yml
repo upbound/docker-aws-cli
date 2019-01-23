@@ -25,7 +25,8 @@ jobs:
           name: Publish Image
           command: |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              docker tag $DOCKER_REPO/aws-cli:latest $DOCKER_REPO/aws-cli:$CIRCLE_SHA1
-              docker push $DOCKER_REPO/aws-cli:$CIRCLE_SHA1
+              FINALTAG=`echo v0.0.0-$(git rev-list HEAD --count)-$(git describe --dirty --always) | sed 's/-/./2' | sed 's/-/./2'`
+              docker tag $DOCKER_REPO/aws-cli:latest $DOCKER_REPO/aws-cli:$FINALTAG
+              docker push $DOCKER_REPO/aws-cli:$FINALTAG
               docker push $DOCKER_REPO/aws-cli:latest
             fi
